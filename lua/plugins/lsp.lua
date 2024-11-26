@@ -30,10 +30,9 @@ return {
                 map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
             end
 
-            -- Define the list of servers you want to ensure are installed
             local servers = {
                 pyright = {},
-                ts_ls = {},         -- Updated server name
+                ts_ls = {},
                 eslint = {},
                 html = {},
                 cssls = {},
@@ -42,7 +41,6 @@ return {
                 rust_analyzer = {},
             }
 
-            -- Ensure the servers are installed and configured
             require('mason-lspconfig').setup({
                 ensure_installed = vim.tbl_keys(servers),
             })
@@ -54,7 +52,6 @@ return {
                 lspconfig[server_name].setup(config)
             end
 
-            -- Optional: Configure diagnostic display settings (if desired)
             vim.diagnostic.config({
                 virtual_text = true,
             })
