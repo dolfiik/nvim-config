@@ -2,14 +2,28 @@ return {
     {
         "williamboman/mason.nvim",
         config = function()
-            require("mason").setup()
+            require("mason").setup({
+                ensure_installed = {
+                    "pyright",
+                    "typescript-language-server",
+                    "eslint-lsp",
+                    "html-lsp",
+                    "css-lsp",
+                    "lua-language-server",
+                    "clangd",
+                    "rust-analyzer",
+                    "intelephense",
+                    "stimulus-language-server",
+                    "blade-formatter"
+                },
+            })
         end,
     },
     {
         "neovim/nvim-lspconfig",
-        dependencies = { 
+        dependencies = {
             "williamboman/mason-lspconfig.nvim",
-            "hrsh7th/cmp-nvim-lsp" 
+            "hrsh7th/cmp-nvim-lsp"
         },
         config = function()
             local lspconfig = require("lspconfig")
@@ -34,11 +48,31 @@ return {
                 pyright = {},
                 ts_ls = {},
                 eslint = {},
-                html = {},
+                html = {
+                  filetypes = { "html", "blade" },
+                  init_options = {
+                    configurationSection = { "html", "css", "javascript" },
+                    embeddedLanguages = {
+                      css = true,
+                      javascript = true
+                    },
+                    provideFormatter = true
+                  }
+
+               },
                 cssls = {},
                 lua_ls = {},
                 clangd = {},
                 rust_analyzer = {},
+                intelephense = {
+                    settings = {
+                        intelephense = {
+                            files = {
+                                maxSize = 1000000,
+                            },
+                        },
+                    },
+                },
             }
 
             require('mason-lspconfig').setup({
@@ -48,14 +82,27 @@ return {
             for server_name, config in pairs(servers) do
                 config.on_attach = on_attach
                 config.capabilities = capabilities
-
                 lspconfig[server_name].setup(config)
             end
+
+
+            lspconfig.blade.setup({
+              cmd = { "laravel-dev-generators", "lsp" },
+              filetypes = {'blade'},
+              root_dir = lspconfig.util.root_pattern("composer.json", ".git"),
+              capabilities = capabilities,
+              on_attach = on_attach
+            })
 
             vim.diagnostic.config({
                 virtual_text = true,
             })
+
+            vim.filetype.add({
+              pattern = {
+                [".*%.blade%.php"] = 'blade',
+              },
+            })
         end,
     },
 }
-
