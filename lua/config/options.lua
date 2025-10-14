@@ -1,114 +1,70 @@
--- sets the leader key to space ; leader key - a key which will precde every shortcut
+-- Minimal vi-like options
 vim.g.mapleader = " "
 
--- syncs os clipboard with noevim
-vim.schedule(function()
-  vim.opt.clipboard = 'unnamedplus'
-end)
-
--- sets the encoding of vim scripts to utf-8
-vim.scriptencoding = "utf-8"
-
--- sets the overall encoding to utf-8
+vim.cmd("language en_US.UTF-8")
+-- Essential encoding
 vim.opt.encoding = "utf-8"
-
--- specifies that files should we written and read using utf-8 
 vim.opt.fileencoding = "utf-8"
 
--- enables line numbers in the editor
+-- Line numbers (vi had these with :set nu)
 vim.opt.number = true
 
--- enables relative line numbers depending on current line
-vim.opt.relativenumber = true
-
--- displays the file name in the title bar of the terminal window
-vim.opt.title = true
-
--- automatically indents new lines to march indentation level of the previous line
+-- Indentation (keep it simple)
 vim.opt.autoindent = true
-
--- provides intelligent automatic indentation based on syntax of the code being edited
-vim.opt.smartindent = true
-
--- enables highlights of all matches of the last searched pattern
-vim.opt.hlsearch = true
-
--- disables backup file creation - not sure of this one yet (?)
-vim.opt.backup = false
-
--- displays incomplete commands in the command area at the bottom of the window
-vim.opt.showcmd = true
-
--- converts tabs into spaces - will try it out, not sure  (?)
+vim.opt.tabstop = 2
+vim.opt.shiftwidth = 2
 vim.opt.expandtab = true
 
--- keeps 10 lines visible above and below the cursor when scrolling
-vim.opt.scrolloff = 10
-
--- shows a live preview of substitutions when using s:
-vim.opt.inccommand = "split"
-
--- makes searches case insensetive unless uppercase letters are used in the search pattern
+-- Search behavior (vi-style)
+vim.opt.hlsearch = true
+vim.opt.incsearch = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
--- allows for smarter tabbing behaviour
-vim.opt.smarttab = true
+-- Scrolling
+vim.opt.scrolloff = 8
 
--- allows wrapped lines to be visually indented (?)
-vim.opt.breakindent = true
-
--- sets the number of spaces used for each step of autoindentation
-vim.opt.shiftwidth = 2
-
--- sets how many spaces is a tab
-vim.opt.tabstop = 2
-
--- disables line wrapping
+-- No wrapping (vi default)
 vim.opt.wrap = false
 
--- configures backspacing behaviour to allow backspacing over insertion start points, end-of-line characters and indentation levels (?)
-vim.opt.backspace = {"start", "eol", "indent"}
-
--- adds all subdirectories recursively to the search path for file commands (for example find:) - this allows faster searching threw nested directories (?)
-vim.opt.path:append({"**"})
-
--- ignores files and directories matching the pattern - here node modules
-vim.opt.wildignore:append({"*/node_modules/*"})
-
--- keeps the cursor stable when opening new splits
-vim.opt.splitkeep = "cursor"
-
--- enables mouse mode for resizing window splits
-vim.opt.mouse = "a"
-
--- saves undo history
+-- Backup files
+vim.opt.backup = false
+vim.opt.writebackup = false
+vim.opt.swapfile = false
 vim.opt.undofile = true
 
--- keeps sign column on as default - not sure yet (?)
-vim.opt.signcolumn = "yes"
-
--- decrease update time for smoother workflow (file creation etc.)
-vim.opt.updatetime = 250
-
--- decrease mapped sequence wait time
--- displays which-key popup sooner
-vim.opt.timeoutlen = 300
-
--- configures how new splits should be open
+-- Split behavior
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 
--- sets how neovim will display certain whitespace characters in the editor.
--- :help list for more
--- :help listchars
-vim.opt.list = true
-vim.opt.listchars = { tab ='» ', trail = '·', nbsp = '␣'}
+-- Minimal UI
+vim.opt.signcolumn = "yes"  -- Keep gutter stable for LSP
+vim.opt.updatetime = 250
+vim.opt.timeoutlen = 300
 
--- shows which line your cursor is currently on
-vim.opt.cursorline = true
+-- Mouse (modern convenience)
+vim.opt.mouse = "a"
 
--- all for now
+-- Clipboard sync
+vim.opt.clipboard = "unnamedplus"
 
+-- Minimal status
+vim.opt.laststatus = 2
+vim.opt.ruler = true
+vim.opt.showcmd = true
+vim.opt.showmode = true
 
+-- Use terminal colors (no custom colorscheme)
+vim.opt.termguicolors = true
+vim.cmd("colorscheme default")
 
+vim.cmd("syntax off")
+
+-- Highlight on yank (useful feedback)
+vim.api.nvim_create_autocmd("TextYankPost", {
+  desc = "Highlight when yanking text",
+  group = vim.api.nvim_create_augroup("highlight-yank", { clear = true }),
+  callback = function()
+    vim.highlight.on_yank()
+  end,
+})

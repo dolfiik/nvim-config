@@ -1,108 +1,110 @@
 return {
-    {
-        "williamboman/mason.nvim",
-        config = function()
-            require("mason").setup({
-                ensure_installed = {
-                    "pyright",
-                    "typescript-language-server",
-                    "eslint-lsp",
-                    "html-lsp",
-                    "css-lsp",
-                    "lua-language-server",
-                    "clangd",
-                    "rust-analyzer",
-                    "intelephense",
-                    "stimulus-language-server",
-                    "blade-formatter"
-                },
-            })
-        end,
-    },
-    {
-        "neovim/nvim-lspconfig",
-        dependencies = {
-            "williamboman/mason-lspconfig.nvim",
-            "hrsh7th/cmp-nvim-lsp"
+  {
+    "williamboman/mason.nvim",
+    config = function()
+      require("mason").setup({
+        ui = {
+          border = "single",
         },
-        config = function()
-            local lspconfig = require("lspconfig")
-            local cmp_nvim_lsp = require("cmp_nvim_lsp")
-
-            local capabilities = vim.lsp.protocol.make_client_capabilities()
-            capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
-
-            local on_attach = function(client, bufnr)
-                local function map(keys, func, desc)
-                    vim.keymap.set('n', keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
-                end
-                map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
-                map('gr', vim.lsp.buf.references, '[G]oto [R]eferences')
-                map('gI', vim.lsp.buf.implementation, '[G]oto [I]mplementation')
-                map('<leader>D', vim.lsp.buf.type_definition, 'Type [D]efinition')
-                map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-                map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
-            end
-
-            local servers = {
-                pyright = {},
-                ts_ls = {},
-                eslint = {},
-                html = {
-                  filetypes = { "html", "blade" },
-                  init_options = {
-                    configurationSection = { "html", "css", "javascript" },
-                    embeddedLanguages = {
-                      css = true,
-                      javascript = true
-                    },
-                    provideFormatter = true
-                  }
-
-               },
-                cssls = {},
-                lua_ls = {},
-                clangd = {},
-                rust_analyzer = {},
-                intelephense = {
-                    settings = {
-                        intelephense = {
-                            files = {
-                                maxSize = 1000000,
-                            },
-                        },
-                    },
-                },
-            }
-
-            require('mason-lspconfig').setup({
-                ensure_installed = vim.tbl_keys(servers),
-            })
-
-            for server_name, config in pairs(servers) do
-                config.on_attach = on_attach
-                config.capabilities = capabilities
-                lspconfig[server_name].setup(config)
-            end
-
-
-            lspconfig.blade.setup({
-              cmd = { "laravel-dev-generators", "lsp" },
-              filetypes = {'blade'},
-              root_dir = lspconfig.util.root_pattern("composer.json", ".git"),
-              capabilities = capabilities,
-              on_attach = on_attach
-            })
-
-            vim.diagnostic.config({
-                virtual_text = true,
-            })
-
-            vim.filetype.add({
-              pattern = {
-                [".*%.blade%.php"] = 'blade',
-              },
-            })
-        end,
+      })
+    end,
+  },
+  {
+    "williamboman/mason-lspconfig.nvim",
+    dependencies = { "williamboman/mason.nvim" },
+    config = function()
+      require("mason-lspconfig").setup({
+        -- Automatically install these language servers
+        ensure_installed = {
+          "lua_ls",
+          "pyright",
+          "ts_ls",
+          "html",
+          "cssls",
+          "clangd",
+          "rust_analyzer",
+        },
+      })
+    end,
+  },
+  {
+    "neovim/nvim-lspconfig",
+    dependencies = {
+      "williamboman/mason-lspconfig.nvim",
+      "hrsh7th/cmp-nvim-lsp",
     },
+    config = function()
+      local lspconfig = require("lspconfig")
+      local cmp_nvim_lsp = require("cmp_nvim_lsp")
+
+      -- LSP capabilities for completion
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
+
+      -- Keymaps when LSP attaches to buffer
+      local on_attach = function(client, bufnr)
+        -- Disable semantic tokens (colors from LSP)
+        client.server_capabilities.semanticTokensProvider = nil
+        
+        local function map(keys, func, desc)
+          vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
+        end
+
+        -- Essential LSP keymaps
+        map("gd", vim.lsp.buf.definition, "Go to definition")
+        map("gr", vim.lsp.buf.references, "Go to references")
+        map("gI", vim.lsp.buf.implementation, "Go to implementation")
+        map("K", vim.lsp.buf.hover, "Hover documentation")
+        map("<leader>rn", vim.lsp.buf.rename, "Rename")
+        map("<leader>ca", vim.lsp.buf.code_action, "Code action")
+        map("<leader>D", vim.lsp.buf.type_definition, "Type definition")
+      end
+
+      -- Language server configurations
+      local servers = {
+        lua_ls = {
+          settings = {
+            Lua = {
+              diagnostics = {
+                globals = { "vim" },
+              },
+            },
+          },
+        },
+        pyright = {},
+        ts_ls = {},
+        html = {},
+        cssls = {},
+        clangd = {},
+        rust_analyzer = {},
+      }
+
+      -- Setup each server
+      for server_name, config in pairs(servers) do
+        config.on_attach = on_attach
+        config.capabilities = capabilities
+        lspconfig[server_name].setup(config)
+      end
+
+      -- Minimal diagnostic display
+      vim.diagnostic.config({
+        virtual_text = true,
+        signs = {
+          text = {
+            [vim.diagnostic.severity.ERROR] = "E",
+            [vim.diagnostic.severity.WARN] = "W",
+            [vim.diagnostic.severity.HINT] = "H",
+            [vim.diagnostic.severity.INFO] = "I",
+          },
+        },
+        update_in_insert = false,
+        underline = true,
+        severity_sort = true,
+        float = {
+          border = "single",
+          source = "always",
+        },
+      })
+    end,
+  },
 }

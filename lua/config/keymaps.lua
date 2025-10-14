@@ -1,58 +1,62 @@
 local keymap = vim.keymap
-local opts = { noremap = true, silent = true}
+local opts = { noremap = true, silent = true }
 
--- deleting via x wont store the value in any registers
+-- Leader key is Space (set in options.lua)
+
+-- === VI BASICS ===
+-- Delete without yanking
 keymap.set("n", "x", '"_x')
 
--- increase/decrease size
+-- Increment/decrement
 keymap.set("n", "+", "<C-a>")
 keymap.set("n", "-", "<C-x>")
 
--- select all
+-- Select all (modern convenience)
 keymap.set("n", "<C-a>", "gg<S-v>G")
 
--- save file and quit
-keymap.set("n", "<Leader>w", ":update<Return>", opts)
-keymap.set("n", "<Leader>q", ":q<Return>", opts)
-keymap.set("n", "<Leader>Q", ":qa<Return>", opts)
+-- === FILE OPERATIONS ===
+keymap.set("n", "<leader>w", ":w<CR>", opts)
+keymap.set("n", "<leader>q", ":q<CR>", opts)
+keymap.set("n", "<leader>Q", ":qa<CR>", opts)
 
--- clear highlights on serach when pressing Esp
+-- === SEARCH ===
+-- Clear search highlights
 keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
--- diagnostic keymaps
-keymap.set("n", "<Leader>d", vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+-- === WINDOW NAVIGATION ===
+-- Use Ctrl+hjkl to move between windows
+keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
+keymap.set("n", "<C-j>", "<C-w>j", { desc = "Move to lower window" })
+keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to upper window" })
+keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
--- diagnostic jump
-keymap.set("n", "<C-j>", function()
-  vim.diagnostic_goto_next()
-end, opts)
+-- === TABS ===
+keymap.set("n", "te", ":tabedit<CR>", opts)
+keymap.set("n", "<Tab>", ":tabnext<CR>", opts)
+keymap.set("n", "<S-Tab>", ":tabprev<CR>", opts)
+keymap.set("n", "tw", ":tabclose<CR>", opts)
 
--- exit terminal mode (?)
+-- === TERMINAL MODE ===
 keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
--- keybinds to make split navigation easier 
--- Use ctrl hjkl to swtich between windows
-keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
-keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
-keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
-keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
+-- === DIAGNOSTICS ===
+keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
+keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic" })
+keymap.set("n", "<leader>d", vim.diagnostic.setloclist, { desc = "Diagnostic list" })
 
--- tabs
-keymap.set("n", "te", ":tabedit")
-keymap.set("n", "<tab>", ":tabnext<Return>", opts)
-keymap.set("n", "<s-tab>", ":tabprev<Return>", opts)
-keymap.set("n", "tw", ":tabclose<Return>", opts)
+keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Project view" })
 
--- AUTOCOMMANDS
--- highlight when yanking text - easeir to see what you have copied
--- use yap
-vim.api.nvim_create_autocmd("TextYankPost" , {
-  desc = "Highlight when copying text",
-  group = vim.api.nvim_create_augroup("Dolfik-highlight-yank", { clear = true }),
-  callback = function()
-    vim.highlight.on_yank()
-  end,
-})
+-- === TELESCOPE (set in telescope.lua) ===
+-- <leader>ff - Find files
+-- <leader>fg - Live grep
+-- <leader>fb - Buffers
+-- <leader>fh - Help tags
+-- <leader>/ - Search in current buffer
 
--- faster Ex
-keymap.set("n", "<Leader>pv", vim.cmd.Ex)
+-- === LSP (set in lsp.lua when LSP attaches) ===
+-- gd - Go to definition
+-- gr - Go to references
+-- K - Hover documentation
+-- <leader>rn - Rename
+-- <leader>ca - Code action
