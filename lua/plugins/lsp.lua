@@ -1,6 +1,6 @@
 return {
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     config = function()
       require("mason").setup({
         ui = {
@@ -9,48 +9,30 @@ return {
       })
     end,
   },
+
   {
-    "williamboman/mason-lspconfig.nvim",
-    dependencies = { "williamboman/mason.nvim" },
-    config = function()
-      require("mason-lspconfig").setup({
-        -- Automatically install these language servers
-        ensure_installed = {
-          "lua_ls",
-          "pyright",
-          "ts_ls",
-          "html",
-          "cssls",
-          "clangd",
-          "rust_analyzer",
-        },
-      })
-    end,
-  },
-  {
-    "neovim/nvim-lspconfig",
+    "mason-org/mason-lspconfig.nvim",
     dependencies = {
-      "williamboman/mason-lspconfig.nvim",
+      "mason-org/mason.nvim",
+      "neovim/nvim-lspconfig",
       "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
-      local lspconfig = require("lspconfig")
       local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
-      -- LSP capabilities for completion
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
 
-      -- Keymaps when LSP attaches to buffer
       local on_attach = function(client, bufnr)
-        -- Disable semantic tokens (colors from LSP)
         client.server_capabilities.semanticTokensProvider = nil
-        
+
         local function map(keys, func, desc)
-          vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
+          vim.keymap.set("n", keys, func, {
+            buffer = bufnr,
+            desc = "LSP: " .. desc,
+          })
         end
 
-        -- Essential LSP keymaps
         map("gd", vim.lsp.buf.definition, "Go to definition")
         map("gr", vim.lsp.buf.references, "Go to references")
         map("gI", vim.lsp.buf.implementation, "Go to implementation")
@@ -60,7 +42,6 @@ return {
         map("<leader>D", vim.lsp.buf.type_definition, "Type definition")
       end
 
-      -- Language server configurations
       local servers = {
         lua_ls = {
           settings = {
@@ -79,14 +60,24 @@ return {
         rust_analyzer = {},
       }
 
-      -- Setup each server
-      for server_name, config in pairs(servers) do
-        config.on_attach = on_attach
-        config.capabilities = capabilities
-        lspconfig[server_name].setup(config)
+      for server_name, server_config in pairs(servers) do
+        server_config.capabilities = vim.tbl_deep_extend(
+          "force",
+          {},
+          capabilities,
+          server_config.capabilities or {}
+        )
+
+        server_config.on_attach = on_attach
+
+        vim.lsp.config(server_name, server_config)
       end
 
-      -- Minimal diagnostic display
+      require("mason-lspconfig").setup({
+        ensure_installed = vim.tbl_keys(servers),
+        automatic_enable = true,
+      })
+
       vim.diagnostic.config({
         virtual_text = true,
         signs = {
